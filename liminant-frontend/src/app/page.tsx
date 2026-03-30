@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,7 @@ import { useStore } from "@/lib/store";
 import { Plus, Trash2, ArrowRight } from "lucide-react";
 
 export default function HomePage() {
+  const router = useRouter();
   const { sessions, loadSessions, createSession, deleteSession, setActiveSession } = useStore();
 
   useEffect(() => {
@@ -73,6 +75,7 @@ export default function HomePage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         setActiveSession(session.id);
+                        router.push(`/session/${session.id}`);
                       }}
                     >
                       <ArrowRight className="h-4 w-4" />
