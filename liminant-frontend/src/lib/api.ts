@@ -12,27 +12,33 @@ interface Message {
   };
 }
 
+interface SessionConstraints {
+  active: boolean;
+  rules: string[];
+  knowledge_refs: string[];
+}
+
+interface SessionState {
+  phase: string;
+  current_step: number;
+  total_steps: number;
+}
+
+interface SessionContext {
+  working_directory: string;
+  language: string;
+  preferences: Record<string, unknown>;
+}
+
 interface Session {
   id: string;
   created_at: string;
   updated_at: string;
-  state: {
-    phase: string;
-    current_step: number;
-    total_steps: number;
-  };
-  context: {
-    working_directory: string;
-    language: string;
-    preferences: Record<string, unknown>;
-  };
+  state: SessionState;
+  context: SessionContext;
   messages: Message[];
   artifacts: unknown[];
-  constraints: {
-    active: boolean;
-    rules: string[];
-    knowledge_refs: string[];
-  };
+  constraints: SessionConstraints;
 }
 
 async function fetchJSON(path: string, options?: RequestInit) {
@@ -71,6 +77,24 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ content, role }),
       }),
+
+    updateConstraints: (
+      id: string,
+      data: {
+        active?: boolean;
+        add_rules?: string[];
+        remove_rules?: string[];
+        add_knowledge_refs?: string[];
+        remove_knowledge_refs?: string[];
+      }
+    ) =>
+      fetchJSON(`/api/v1/sessions/${id}/constraints`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+
+    getArtifacts: (id: string) =>
+      fetchJSON(`/api/v1/sessions/${id}/artifacts`),
   },
 
   knowledge: {

@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
-from app.models.session import Session, SessionCreate
+from app.models.session import Session, SessionCreate, SessionUpdateConstraints
 from app.models.message import Message, MessageCreate, MessageRole
 from app.services.session_manager import SessionManager
 
@@ -99,3 +99,19 @@ async def send_message(session_id: str, req: SendMessageRequest):
         response_content=response_text,
         session=session,
     )
+
+
+@router.patch("/{session_id}/constraints")
+async def update_constraints(session_id: str, data: SessionUpdateConstraints):
+    session = await sm.update_constraints(session_id, data)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session.to_dict()
+
+
+@router.get("/{session_id}/artifacts")
+async def get_artifacts(session_id: str):
+    session = await sm.get(session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"artifacts": session.artifacts}

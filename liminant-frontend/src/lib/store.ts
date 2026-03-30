@@ -16,6 +16,14 @@ interface AppState {
   sendMessage: (content: string) => Promise<void>;
   setActiveSession: (id: string | null) => void;
   clearError: () => void;
+  updateConstraints: (data: {
+    active?: boolean;
+    add_rules?: string[];
+    remove_rules?: string[];
+    add_knowledge_refs?: string[];
+    remove_knowledge_refs?: string[];
+  }) => Promise<void>;
+  loadArtifacts: (sessionId: string) => Promise<unknown[]>;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -123,4 +131,24 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  updateConstraints: async (data) => {
+    const { activeSessionId } = get();
+    if (!activeSessionId) return;
+    try {
+      const updated = await api.sessions.updateConstraints(activeSessionId, data);
+      set((state) => ({
+        activeSession: state.activeSession
+          ? { ...state.activeSession, constraints: updated.constraints }
+          : null,
+      }));
+    } catch (e) {
+      set({ error: (e as Error).message });
+    }
+  },
+
+  loadArtifacts: async (sessionId: string) => {
+    const res = await api.sessions.getArtifacts(sessionId);
+    return res.artifacts;
+  },
 }));

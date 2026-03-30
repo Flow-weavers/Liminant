@@ -41,7 +41,24 @@ class Session(BaseModel):
         data["created_at"] = self.created_at.isoformat()
         return data
 
+    async def add_knowledge_ref(self, kb_id: str) -> None:
+        if kb_id not in self.constraints.knowledge_refs:
+            self.constraints.knowledge_refs.append(kb_id)
+            self.constraints.active = True
+
+    async def remove_knowledge_ref(self, kb_id: str) -> None:
+        if kb_id in self.constraints.knowledge_refs:
+            self.constraints.knowledge_refs.remove(kb_id)
+
 
 class SessionCreate(BaseModel):
     working_directory: Optional[str] = None
     language: Optional[str] = None
+
+
+class SessionUpdateConstraints(BaseModel):
+    active: Optional[bool] = None
+    add_rules: list[str] = Field(default_factory=list)
+    remove_rules: list[str] = Field(default_factory=list)
+    add_knowledge_refs: list[str] = Field(default_factory=list)
+    remove_knowledge_refs: list[str] = Field(default_factory=list)

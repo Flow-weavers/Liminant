@@ -1,4 +1,4 @@
-from app.models.session import Session, SessionCreate
+from app.models.session import Session, SessionCreate, SessionUpdateConstraints
 from app.models.message import Message, MessageCreate, MessageRole
 from app.utils.json_storage import get_storage
 from datetime import datetime
@@ -75,6 +75,34 @@ class SessionManager:
         if session is None:
             return None
         session.artifacts.append(artifact)
+        session.updated_at = datetime.utcnow()
+        await self.storage.write("sessions", session.id, session.to_dict())
+        return session
+
+    async def update_constraints(
+        self, session_id: str, data: SessionUpdateConstraints
+    ) -> Session | None:
+        session = await self.get(session_id)
+        if session is None:
+            return None
+
+        if data.active is not None:
+            session.constraints.active = data.active
+
+        for rule_id in data.add_rules:
+            if rule_id not in session.constraints.rules:
+                session.constraints.rules.append(rule_id)
+        for rule_id in data.remove_rules:
+            if rule_id in session.constraints.rules:
+                session.constraints.rules.remove(rule_id)
+
+        for kb_id in data.add_knowledge_refs:
+            if kb_id not in session.constraints.knowledge_refs:
+                session.constraints.knowledge_refs.append(kb_id)
+        for kb_id in data.remove_knowledge_refs:
+            if kb_id in session.constraints.knowledge_refs:
+                session.constraints.knowledge_refs.remove(kb_id)
+
         session.updated_at = datetime.utcnow()
         await self.storage.write("sessions", session.id, session.to_dict())
         return session
