@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     data_dir: Path = Path(__file__).parent.parent.parent / "data"
 
     openai_api_key: str = ""
+    openai_base_url: str = "https://api.openai.com/v1"
     openai_model: str = "gpt-4-turbo"
     openai_temperature: float = 0.7
     openai_max_tokens: int = 4000

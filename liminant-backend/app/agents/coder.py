@@ -74,7 +74,7 @@ class CoderAgent(BaseAgent):
 
         try:
             from openai import AsyncOpenAI
-            client = AsyncOpenAI(api_key=api_key)
+            client = AsyncOpenAI(api_key=api_key, base_url=settings.openai_base_url)
             completion = await client.chat.completions.create(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],

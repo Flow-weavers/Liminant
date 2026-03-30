@@ -110,7 +110,7 @@ class CoordinatorAgent(BaseAgent):
 
         try:
             from openai import AsyncOpenAI
-            client = AsyncOpenAI(api_key=api_key)
+            client = AsyncOpenAI(api_key=api_key, base_url=settings.openai_base_url)
             all_messages = [{"role": "system", "content": system_prompt}] + messages
             completion = await client.chat.completions.create(
                 model=settings.openai_model,
