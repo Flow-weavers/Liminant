@@ -1,0 +1,25 @@
+{
+  "id": "sess_0ce0ff36d702",
+  "created_at": "2026-03-30T18:29:08.612159",
+  "updated_at": "2026-03-30T18:29:08.612161",
+  "state": {
+    "phase": "planning",
+    "current_step": 1,
+    "total_steps": 1
+  },
+  "context": {
+    "working_directory": "/workspace/default",
+    "language": "en-US",
+    "preferences": {
+      "detail_level": "medium",
+      "output_format": "markdown"
+    }
+  },
+  "messages": [],
+  "artifacts": [],
+  "constraints": {
+    "active": true,
+    "rules": [],
+    "knowledge_refs": []
+  }
+}

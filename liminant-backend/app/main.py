@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.api.v1 import sessions, knowledge, tools
+from app.api.v1 import sessions, knowledge, tools, artifacts, timeline, vibesense
 
 app = FastAPI(
     title=settings.app_name,
@@ -21,6 +21,9 @@ app.add_middleware(
 app.include_router(sessions.router)
 app.include_router(knowledge.router)
 app.include_router(tools.router)
+app.include_router(artifacts.router)
+app.include_router(timeline.router)
+app.include_router(vibesense.router)
 
 
 @app.get("/")
