@@ -5,15 +5,16 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatPanel } from "@/components/chat";
 import { SessionTimeline } from "@/components/timeline/SessionTimeline";
+import { ArtifactsPanel } from "@/components/artifacts/ArtifactsPanel";
 import { useStore } from "@/lib/store";
-import { ArrowLeft, Clock, MessageSquare } from "lucide-react";
+import { ArrowLeft, Clock, MessageSquare, FileCode } from "lucide-react";
 
 export default function SessionPage() {
   const params = useParams();
   const router = useRouter();
   const sessionId = params.id as string;
   const { activeSession, isLoading, setActiveSession } = useStore();
-  const [activeTab, setActiveTab] = useState<"chat" | "timeline">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "timeline" | "artifacts">("chat");
 
   useEffect(() => {
     if (sessionId) {
@@ -38,28 +39,24 @@ export default function SessionPage() {
           )}
         </div>
         <div className="flex gap-1 bg-zinc-900 rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab("chat")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs transition-colors ${
-              activeTab === "chat"
-                ? "bg-zinc-800 text-zinc-100"
-                : "text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            <MessageSquare className="h-3 w-3" />
-            Chat
-          </button>
-          <button
-            onClick={() => setActiveTab("timeline")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs transition-colors ${
-              activeTab === "timeline"
-                ? "bg-zinc-800 text-zinc-100"
-                : "text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            <Clock className="h-3 w-3" />
-            Timeline
-          </button>
+          {(["chat", "timeline", "artifacts"] as const).map((tab) => {
+            const icons = { chat: MessageSquare, timeline: Clock, artifacts: FileCode };
+            const Icon = icons[tab];
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs transition-colors ${
+                  activeTab === tab
+                    ? "bg-zinc-800 text-zinc-100"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                <Icon className="h-3 w-3" />
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            );
+          })}
         </div>
       </header>
 
@@ -70,9 +67,13 @@ export default function SessionPage() {
           </div>
         ) : activeTab === "chat" ? (
           <ChatPanel />
-        ) : (
+        ) : activeTab === "timeline" ? (
           <div className="h-full overflow-y-auto p-4">
             <SessionTimeline sessionId={sessionId} />
+          </div>
+        ) : (
+          <div className="h-full overflow-hidden flex flex-col">
+            <ArtifactsPanel sessionId={sessionId} />
           </div>
         )}
       </div>
