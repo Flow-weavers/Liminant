@@ -1,34 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatPanel } from "@/components/chat";
-import { SessionTimeline } from "@/components/timeline/SessionTimeline";
-import { ArtifactsPanel } from "@/components/artifacts/ArtifactsPanel";
+import { ReasoningLog } from "@/components/chat/ReasoningLog";
+import { PhaseIndicator } from "@/components/chat/PhaseIndicator";
 import { useStore } from "@/lib/store";
-import { ArrowLeft, Clock, MessageSquare, FileCode } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default function SessionPage() {
   const params = useParams();
   const router = useRouter();
   const sessionId = params.id as string;
-  const { activeSession, isLoading, setActiveSession } = useStore();
-  const [activeTab, setActiveTab] = useState<"chat" | "timeline" | "artifacts">("chat");
+  const { activeSession, isLoading, setActiveSession, reasoningLog, connectStream, disconnectStream } = useStore();
+  const lastEntry = reasoningLog[reasoningLog.length - 1];
+  const currentPhase = lastEntry?.phase || "idle";
 
   useEffect(() => {
     if (sessionId) {
       setActiveSession(sessionId);
+      connectStream(sessionId);
     }
-  }, [sessionId, setActiveSession]);
+    return () => {
+      disconnectStream();
+    };
+  }, [sessionId, setActiveSession, connectStream, disconnectStream]);
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="border-b px-4 py-3 flex items-center gap-4">
+      <header className="border-b px-4 py-3 flex items-center gap-4 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col">
           <span className="text-sm font-semibold">
             {activeSession ? `Session ${activeSession.id}` : "Loading..."}
           </span>
@@ -38,44 +43,30 @@ export default function SessionPage() {
             </span>
           )}
         </div>
-        <div className="flex gap-1 bg-zinc-900 rounded-lg p-1">
-          {(["chat", "timeline", "artifacts"] as const).map((tab) => {
-            const icons = { chat: MessageSquare, timeline: Clock, artifacts: FileCode };
-            const Icon = icons[tab];
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs transition-colors ${
-                  activeTab === tab
-                    ? "bg-zinc-800 text-zinc-100"
-                    : "text-zinc-500 hover:text-zinc-300"
-                }`}
-              >
-                <Icon className="h-3 w-3" />
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            );
-          })}
+        <div className="ml-auto flex items-center gap-3">
+          <PhaseIndicator phase={currentPhase} />
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden">
-        {isLoading && !activeSession ? (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            Loading session...
+      <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 overflow-hidden">
+          {isLoading && !activeSession ? (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+              Loading session...
+            </div>
+          ) : (
+            <ChatPanel />
+          )}
+        </div>
+
+        <div className="w-80 border-l bg-muted/20 overflow-hidden flex flex-col shrink-0">
+          <div className="px-3 py-2 border-b bg-background/50">
+            <span className="text-xs font-semibold">Pipeline Trace</span>
           </div>
-        ) : activeTab === "chat" ? (
-          <ChatPanel />
-        ) : activeTab === "timeline" ? (
-          <div className="h-full overflow-y-auto p-4">
-            <SessionTimeline sessionId={sessionId} />
+          <div className="flex-1 overflow-hidden">
+            <ReasoningLog />
           </div>
-        ) : (
-          <div className="h-full overflow-hidden flex flex-col">
-            <ArtifactsPanel sessionId={sessionId} />
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

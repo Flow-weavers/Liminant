@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface Message {
   id: string;
@@ -72,7 +72,14 @@ export const api = {
       id: string,
       content: string,
       role: string = "user"
-    ): Promise<{ message: Message; response_content: string; session: Session }> =>
+    ): Promise<{
+      message: Message;
+      response_content: string;
+      session: Session;
+      tools_used?: unknown[];
+      reasoning?: unknown;
+      phase?: string;
+    }> =>
       fetchJSON(`/api/v1/sessions/${id}/messages`, {
         method: "POST",
         body: JSON.stringify({ content, role }),
@@ -95,6 +102,14 @@ export const api = {
 
     getArtifacts: (id: string) =>
       fetchJSON(`/api/v1/sessions/${id}/artifacts`),
+  },
+
+  preflight: {
+    analyze: (user_input: string, session_id: string) =>
+      fetchJSON("/api/v1/preflight/analyze", {
+        method: "POST",
+        body: JSON.stringify({ user_input, session_id }),
+      }),
   },
 
   knowledge: {

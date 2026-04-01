@@ -22,10 +22,10 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = ["http://localhost:3000"]
 
-    session_default_working_dir: str = "/workspace/default"
+    session_default_working_dir: str = "d:\\Liminant"
     session_default_language: str = "en-US"
 
-    tool_allowed_paths: list[str] = ["/workspace"]
+    tool_allowed_paths: list[str] = ["d:\\Liminant"]
 
     @property
     def sessions_dir(self) -> Path:

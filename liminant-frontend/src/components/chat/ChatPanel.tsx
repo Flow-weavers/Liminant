@@ -3,17 +3,17 @@
 import { Card } from "@/components/ui/card";
 import { MessageList } from "./MessageList";
 import { InputArea } from "./InputArea";
+import { PreFlightCard } from "./PreFlightCard";
 import { useStore } from "@/lib/store";
 
 export function ChatPanel() {
-  const { messages, isLoading } = useStore();
+  const { messages, isLoading, runPreflight } = useStore();
 
   return (
     <Card className="flex flex-col h-full border-0 rounded-none">
+      <PreFlightCard />
       <MessageList messages={messages} isLoading={isLoading} />
-      <div className="p-4 border-t">
-        <InputArea />
-      </div>
+      <InputArea onAnalyze={runPreflight} isLoading={isLoading} />
     </Card>
   );
 }

@@ -4,41 +4,11 @@ import { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { CodeBlock } from "./CodeBlock";
 import { Message } from "@/lib/api";
 
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
-}
-
-type Part =
-  | { kind: "text"; content: string }
-  | { kind: "code"; content: string; lang: string }
-  | { kind: "diff"; content: string; lang: string };
-
-function parseContent(content: string): Part[] {
-  const parts: Part[] = [];
-  const codeBlockRe = /```(\w*)\n?([\s\S]*?)```/g;
-  let lastIndex = 0;
-  let match;
-
-  while ((match = codeBlockRe.exec(content)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push({ kind: "text", content: content.slice(lastIndex, match.index) });
-    }
-    const lang = match[1] || "text";
-    const body = match[2].trim();
-    const isDiff = lang === "diff" || body.includes("+++") || body.includes("---");
-    parts.push({ kind: isDiff ? "diff" : "code", content: body, lang });
-    lastIndex = match.index + match[0].length;
-  }
-
-  if (lastIndex < content.length) {
-    parts.push({ kind: "text", content: content.slice(lastIndex) });
-  }
-
-  return parts.length > 0 ? parts : [{ kind: "text", content }];
 }
 
 export function MessageList({ messages, isLoading }: MessageListProps) {
@@ -58,7 +28,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
   }
 
   return (
-    <ScrollArea className="flex-1 px-4">
+    <ScrollArea className="flex-1 min-h-0 px-4">
       <div className="space-y-4 py-4">
         {messages.map((msg) => (
           <div
@@ -82,21 +52,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                   : "bg-muted"
               )}
             >
-              {msg.role === "user" ? (
-                msg.content
-              ) : (
-                <div className="space-y-2">
-                  {parseContent(msg.content).map((part, i) => {
-                    if (part.kind === "text") {
-                      return <span key={i}>{part.content}</span>;
-                    }
-                    if (part.kind === "diff") {
-                      return <CodeBlock key={i} code={part.content} language={part.lang} showDiff />;
-                    }
-                    return <CodeBlock key={i} code={part.content} language={part.lang} />;
-                  })}
-                </div>
-              )}
+              {msg.content}
             </div>
             <span className="text-[10px] text-muted-foreground mt-1">
               {new Date(msg.timestamp).toLocaleTimeString()}
@@ -106,12 +62,8 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
         {isLoading && (
           <div className="flex items-start">
             <Badge variant="secondary" className="mb-1 text-xs">assistant</Badge>
-            <div className="bg-muted rounded-2xl px-4 py-2">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.15s]" />
-                <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce [animation-delay:0.3s]" />
-              </div>
+            <div className="rounded-2xl px-4 py-2 bg-muted text-sm">
+              <span className="animate-pulse">Thinking...</span>
             </div>
           </div>
         )}

@@ -55,3 +55,9 @@ async def delete_knowledge(kb_id: str):
     if not deleted:
         raise HTTPException(status_code=404, detail="Knowledge entry not found")
     return {"deleted": True}
+
+
+@router.get("/statistics")
+async def get_knowledge_statistics():
+    stats = await kb.get_statistics()
+    return stats

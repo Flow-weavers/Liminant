@@ -21,6 +21,14 @@ class Message(BaseModel):
         "model": "",
         "attachments": [],
     })
+    ancestry: dict = Field(default_factory=lambda: {
+        "kb_entries": [],
+        "applied_constraints": [],
+        "pipeline_stage": 0,
+        "phase": "idle",
+        "pipeline_complete": False,
+        "tools_used": [],
+    })
 
     def to_dict(self) -> dict:
         data = self.model_dump(mode="json")

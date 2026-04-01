@@ -28,14 +28,24 @@ class ConstraintPipeline:
         from app.agents.librarian import LibrarianAgent
         librarian = LibrarianAgent()
 
-        query = data.get("intent", "") + " " + data.get("user_input", "")
-        kb_results = await librarian.run({"query": query, "session": data.get("session", {})})
+        session = data.get("session", {})
+        user_input = data.get("user_input", "")
+
+        intent_query = data.get("intent", "") + " " + user_input
+        kb_results = await librarian.run({"query": intent_query, "session": session, "limit": 5})
+
+        session_triggered = await librarian.kb.trigger_for_session(session)
+
+        all_entries = kb_results.get("results", []) + [
+            e for e in session_triggered if e.id not in [r["id"] for r in kb_results.get("results", [])]
+        ]
 
         return {
             **data,
             "stage": 2,
-            "kb_entries": kb_results.get("results", []),
-            "kb_count": kb_results.get("count", 0),
+            "kb_entries": all_entries,
+            "kb_count": len(all_entries),
+            "session_triggered_count": len(session_triggered),
         }
 
     async def _stage3_constraint_application(self, data: dict[str, Any]) -> dict[str, Any]:
@@ -74,6 +84,13 @@ class ConstraintPipeline:
             "pipeline_complete": True,
         }
 
+    async def record_effectiveness(self, applied_constraint_ids: list[str], response_quality: str) -> None:
+        from app.services.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase()
+        positive = response_quality in ("good", "helpful", "accepted")
+        for cid in applied_constraint_ids:
+            await kb.record_outcome(cid, positive)
+
     def _extract_intent(self, text: str) -> str:
         text = text.strip()
         if text.startswith("."):
@@ -85,6 +102,10 @@ class ConstraintPipeline:
             return "explanation"
         if any(kw in text.lower() for kw in ["list", "show", "display"]):
             return "listing"
+        if any(kw in text.lower() for kw in ["fix", "bug", "error", "issue"]):
+            return "debugging"
+        if any(kw in text.lower() for kw in ["refactor", "optimize", "improve"]):
+            return "refactoring"
         return "general"
 
     def _extract_requirements(self, text: str) -> list[str]:
