@@ -30,7 +30,11 @@ class KnowledgeBase:
         if entry is None:
             return None
         for key, value in data.items():
-            if hasattr(entry, key):
+            if key == "metadata":
+                for mk, mv in value.items():
+                    if hasattr(entry.metadata, mk):
+                        setattr(entry.metadata, mk, mv)
+            elif hasattr(entry, key):
                 setattr(entry, key, value)
         entry.updated_at = datetime.utcnow()
         await self.storage.write("knowledge", entry.id, entry.to_dict())

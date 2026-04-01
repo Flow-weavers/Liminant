@@ -144,9 +144,9 @@ NEO-1 至 NEO-6 已完成，liminal 平台的 reasoning layer 已基本成型：
 
 #### 实施步骤
 
-- [ ] 安装依赖：`react-markdown remark-gfm rehype-highlight`
-- [ ] 重构 `MessageList.tsx` / `MessageItem.tsx`：用 `react-markdown` 包裹 `content`
-- [ ] 适配现有的 code block 样式（已有 `bg-muted` + `rounded-lg`）
+- [x] 安装依赖：`react-markdown remark-gfm rehype-highlight`
+- [x] 重构 `MessageList.tsx`：用 `react-markdown` + `remark-gfm` 包裹 `content`，添加 code block 样式
+- [x] 适配现有的 code block 样式（已有 `bg-muted` + `rounded-lg`）
 
 ---
 
@@ -173,9 +173,10 @@ NEO-1 至 NEO-6 已完成，liminal 平台的 reasoning layer 已基本成型：
 
 #### 实施步骤
 
-- [ ] 新建 `components/chat/VibalCard.tsx`
-- [ ] 在 `ChatPanel.tsx` 侧边或输入框上方集成
-- [ ] SCP 的 `.` 命令解析保持兼容，VibalCard 只是 UX 优化
+- [x] 新建 `components/chat/VibalCard.tsx`
+- [x] 在 `ChatPanel.tsx` 中集成 VibalCard，`onSend` 绑定 `sendMessage`
+- [x] InputArea placeholder 改为纯叙述提示，移除 vibal 语法提示
+- [x] SCP 的 `.` 命令解析保持兼容，VibalCard 只是 UX 优化
 
 ---
 
@@ -198,7 +199,7 @@ NEO-1 至 NEO-6 已完成，liminal 平台的 reasoning layer 已基本成型：
 ## 实施顺序
 
 ```
-Phase 1（T-2 技术债务）→ Phase 2（QOL-1.3 Markdown）→ Phase 3（QOL-1.4 VibalCard）→ Phase 4（QOL-1.2 上下文管理器）→ Phase 5（Scribe Agent）
+Phase 1（T-2 技术债务） ✅ → Phase 2（QOL-1.3 Markdown） ✅ → Phase 3（QOL-1.4 VibalCard） ✅ → Phase 4（QOL-1.2 上下文管理器） → Phase 5（Scribe Agent）
 ```
 
 **原因**：Markdown 和 VibalCard 是纯前端改动，不影响后端，可先完成获得视觉反馈。Scribe Agent 涉及后端新 agent，放在最后。

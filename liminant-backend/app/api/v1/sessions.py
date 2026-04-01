@@ -19,6 +19,7 @@ class SendMessageRequest(BaseModel):
     content: str
     role: MessageRole = MessageRole.USER
     attachments: list[str] = []
+    context_filter: list[str] | None = None
 
 
 class SendMessageResponse(BaseModel):
@@ -85,6 +86,7 @@ async def send_message(session_id: str, req: SendMessageRequest):
     agent_input = {
         "messages": [m.to_dict() for m in (await sm.get_messages(session_id) or [])],
         "session": session.to_dict(),
+        "context_filter": req.context_filter,
     }
 
     agent_output = await agent.run(agent_input)
@@ -114,6 +116,9 @@ async def send_message(session_id: str, req: SendMessageRequest):
             await sm.storage.write("sessions", session.id, session.to_dict())
 
     session = await sm.get(session_id)
+
+    asyncio.create_task(_trigger_scribe(session_id, user_msg, assistant_msg, reasoning))
+
     return SendMessageResponse(
         message=assistant_msg,
         response_content=response_text,
@@ -122,6 +127,43 @@ async def send_message(session_id: str, req: SendMessageRequest):
         reasoning=reasoning,
         phase=phase,
     )
+
+
+async def _trigger_scribe(session_id: str, user_msg, assistant_msg, reasoning: dict) -> None:
+    from app.agents.scribe import ScribeAgent
+    try:
+        session = await sm.get(session_id)
+        if not session:
+            return
+
+        trigger = "none"
+        if _is_corrective_feedback(user_msg.content):
+            trigger = "feedback"
+        elif reasoning.get("artifacts"):
+            trigger = "artifact"
+        elif reasoning.get("intent") == reasoning.get("applied_constraints", [{}])[0].get("type"):
+            trigger = "pattern"
+
+        if trigger == "none":
+            return
+
+        scribe = ScribeAgent()
+        await scribe.propose_and_save({
+            "user_input": user_msg.content,
+            "assistant_response": assistant_msg.content if assistant_msg else "",
+            "artifacts": reasoning.get("artifacts", []),
+            "applied_constraints": reasoning.get("applied_constraints", []),
+            "session": session.to_dict(),
+            "trigger": trigger,
+        })
+    except Exception:
+        pass
+
+
+def _is_corrective_feedback(text: str) -> bool:
+    indicators = ["actually", "should", "prefer", "instead", "not quite", "issue", "problem", "however", "but", "wrong", "correct", "note"]
+    lower = text.lower()
+    return sum(1 for ind in indicators if ind in lower) >= 2
 
 
 @router.get("/{session_id}/stream")

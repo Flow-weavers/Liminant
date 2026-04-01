@@ -71,7 +71,8 @@ export const api = {
     sendMessage: (
       id: string,
       content: string,
-      role: string = "user"
+      role: string = "user",
+      context_filter?: string[]
     ): Promise<{
       message: Message;
       response_content: string;
@@ -82,7 +83,7 @@ export const api = {
     }> =>
       fetchJSON(`/api/v1/sessions/${id}/messages`, {
         method: "POST",
-        body: JSON.stringify({ content, role }),
+        body: JSON.stringify({ content, role, context_filter }),
       }),
 
     updateConstraints: (

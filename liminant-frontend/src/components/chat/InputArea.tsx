@@ -40,7 +40,7 @@ export function InputArea({ onSend, onAnalyze, isLoading }: InputAreaProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Send a message or use vibal commands like .list changes..."
+          placeholder="Describe what you want to build or change..."
           className="min-h-[44px] max-h-[200px] resize-none rounded-2xl"
           disabled={isLoading}
           rows={1}

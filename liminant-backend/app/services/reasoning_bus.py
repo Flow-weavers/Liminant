@@ -21,7 +21,7 @@ class ReasoningBus:
         self.llm_driver = LLMDriver()
         self._bus = PipelineEventBus.get_instance()
 
-    async def drive(self, user_input: str, messages: list[dict], session: dict[str, Any]) -> ReasoningContext:
+    async def drive(self, user_input: str, messages: list[dict], session: dict[str, Any], context_filter: list[str] | None = None) -> ReasoningContext:
         ctx = ReasoningContext(
             user_input=user_input,
             session_id=session.get("id", ""),
@@ -46,7 +46,7 @@ class ReasoningBus:
             return ctx
 
         ctx.phase = PipelinePhase.ABSORBING
-        ctx = await self._absorb(ctx, user_input, session)
+        ctx = await self._absorb(ctx, user_input, session, context_filter)
         self._bus.emit(ctx.session_id, "absorbing", 1, {
             "intent": ctx.intent,
             "requirements": ctx.requirements,
@@ -77,10 +77,11 @@ class ReasoningBus:
         ctx.pipeline_complete = True
         return ctx
 
-    async def _absorb(self, ctx: ReasoningContext, user_input: str, session: dict) -> ReasoningContext:
+    async def _absorb(self, ctx: ReasoningContext, user_input: str, session: dict, context_filter: list[str] | None = None) -> ReasoningContext:
         pipeline_data = await self.pipeline.run({
             "user_input": user_input,
             "session": session,
+            "context_filter": context_filter,
         })
         ctx.intent = pipeline_data.get("intent", "general")
         ctx.requirements = pipeline_data.get("requirements", [])

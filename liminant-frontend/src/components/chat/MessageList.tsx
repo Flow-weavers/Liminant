@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -46,13 +48,13 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
             </Badge>
             <div
               className={cn(
-                "rounded-2xl px-4 py-2 max-w-[80%] text-sm whitespace-pre-wrap",
+                "rounded-2xl px-4 py-3 max-w-[80%] text-sm",
                 msg.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted"
+                  ? "bg-primary text-primary-foreground [&_p]:my-1"
+                  : "bg-muted [&_p]:my-1 [&_pre]:my-2 [&_code]:rounded-md [&_code]:bg-black/10 [&_code]:px-1 [&_pre]:bg-black/10 [&_pre]:rounded-lg [&_pre]:p-2"
               )}
             >
-              {msg.content}
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
             </div>
             <span className="text-[10px] text-muted-foreground mt-1">
               {new Date(msg.timestamp).toLocaleTimeString()}

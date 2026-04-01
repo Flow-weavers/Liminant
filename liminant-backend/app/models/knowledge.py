@@ -22,6 +22,7 @@ class KnowledgeMetadata(BaseModel):
     source: str = "user_defined"
     confidence: float = 0.95
     usage_count: int = 0
+    pending_review: bool = False
 
 
 class KnowledgeContent(BaseModel):

@@ -22,9 +22,11 @@ async def create_knowledge(data: KnowledgeCreate):
 
 
 @router.get("")
-async def list_knowledge():
-    entries = await kb.list_entries()
-    return {"entries": [e.to_dict() for e in entries]}
+async def list_knowledge(pending: bool | None = None):
+    all_entries = await kb.list_entries()
+    if pending is not None:
+        all_entries = [e for e in all_entries if e.metadata.pending_review == pending]
+    return {"entries": [e.to_dict() for e in all_entries]}
 
 
 @router.get("/search")
@@ -44,6 +46,16 @@ async def get_knowledge(kb_id: str):
 @router.put("/{kb_id}")
 async def update_knowledge(kb_id: str, data: dict):
     entry = await kb.update(kb_id, data)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Knowledge entry not found")
+    return {"entry": entry.to_dict()}
+
+
+@router.post("/{kb_id}/confirm")
+async def confirm_knowledge(kb_id: str):
+    entry = await kb.update(kb_id, {
+        "metadata": {"pending_review": False, "confidence": 0.9}
+    })
     if entry is None:
         raise HTTPException(status_code=404, detail="Knowledge entry not found")
     return {"entry": entry.to_dict()}

@@ -30,11 +30,17 @@ class ConstraintPipeline:
 
         session = data.get("session", {})
         user_input = data.get("user_input", "")
+        context_filter = data.get("context_filter")
+
+        filtered_messages = session.get("messages", [])
+        if context_filter:
+            filtered_messages = [m for m in filtered_messages if m.get("id") in context_filter]
+        session_with_filter = {**session, "messages": filtered_messages}
 
         intent_query = data.get("intent", "") + " " + user_input
-        kb_results = await librarian.run({"query": intent_query, "session": session, "limit": 5})
+        kb_results = await librarian.run({"query": intent_query, "session": session_with_filter, "limit": 5})
 
-        session_triggered = await librarian.kb.trigger_for_session(session)
+        session_triggered = await librarian.kb.trigger_for_session(session_with_filter)
 
         all_entries = kb_results.get("results", []) + [
             e for e in session_triggered if e.id not in [r["id"] for r in kb_results.get("results", [])]

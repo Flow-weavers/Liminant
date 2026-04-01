@@ -20,6 +20,7 @@ interface PreflightState {
   requirements: string[];
   kb_entries: { id: string; title: string; type: string; content_preview: string; relevance_score: number }[];
   anchors: { id: string; path: string; type: string; label: string }[];
+  context_enabled: string[];
   confidence: number;
   dismissed: boolean;
   loading: boolean;
@@ -45,13 +46,14 @@ interface AppState extends ApiState {
   loadSessions: () => Promise<void>;
   loadSession: (id: string) => Promise<void>;
   deleteSession: (id: string) => Promise<void>;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, context_filter?: string[]) => Promise<void>;
   setActiveSession: (id: string | null) => void;
   clearError: () => void;
   clearReasoningLog: () => void;
   runPreflight: (user_input: string) => Promise<void>;
   confirmPreflight: () => Promise<void>;
   dismissPreflight: () => void;
+  toggleContextAnchor: (id: string) => void;
   updateConstraints: (data: {
     active?: boolean;
     add_rules?: string[];
@@ -80,6 +82,7 @@ export const useStore = create<AppState>((set, get) => ({
     requirements: [],
     kb_entries: [],
     anchors: [],
+    context_enabled: [],
     confidence: 0.5,
     dismissed: false,
     loading: false,
@@ -202,7 +205,7 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  sendMessage: async (content: string) => {
+  sendMessage: async (content: string, context_filter?: string[]) => {
     const { activeSessionId } = get();
     if (!activeSessionId) return;
 
@@ -221,7 +224,7 @@ export const useStore = create<AppState>((set, get) => ({
     }));
 
     try {
-      const res = await api.sessions.sendMessage(activeSessionId, content);
+      const res = await api.sessions.sendMessage(activeSessionId, content, "user", context_filter);
       const reasoning = res.reasoning as ReasoningEntry | undefined;
       if (reasoning) {
         set((state) => ({
@@ -260,10 +263,12 @@ export const useStore = create<AppState>((set, get) => ({
         user_input,
         pending_content: user_input,
         dismissed: false,
+        context_enabled: [],
       },
     }));
     try {
       const result = await api.preflight.analyze(user_input, activeSessionId);
+      const allIds = result.anchors.map((a: { id: string }) => a.id);
       set((state) => ({
         preflight: {
           ...state.preflight,
@@ -273,6 +278,7 @@ export const useStore = create<AppState>((set, get) => ({
           requirements: result.requirements,
           kb_entries: result.kb_entries,
           anchors: result.anchors,
+          context_enabled: allIds,
           confidence: result.confidence,
         },
       }));
@@ -293,13 +299,25 @@ export const useStore = create<AppState>((set, get) => ({
     set((state) => ({
       preflight: { ...state.preflight, visible: false, dismissed: true },
     }));
-    await sendMessage(preflight.pending_content);
+    await sendMessage(preflight.pending_content, preflight.context_enabled);
   },
 
   dismissPreflight: () => {
     set((state) => ({
       preflight: { ...state.preflight, visible: false, dismissed: true },
     }));
+  },
+
+  toggleContextAnchor: (id: string) => {
+    set((state) => {
+      const enabled = state.preflight.context_enabled;
+      const newEnabled = enabled.includes(id)
+        ? enabled.filter((e) => e !== id)
+        : [...enabled, id];
+      return {
+        preflight: { ...state.preflight, context_enabled: newEnabled },
+      };
+    });
   },
 
   updateConstraints: async (data) => {

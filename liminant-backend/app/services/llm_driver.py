@@ -187,3 +187,31 @@ class LLMDriver:
             ctx.error = str(e)
             ctx.phase = ctx.phase.DONE
             return ctx
+
+    async def complete(self, prompt: str, system: str = "") -> str:
+        import logging
+        logger = logging.getLogger(__name__)
+
+        api_key = settings.openai_api_key
+        if not api_key:
+            return '{"entries": []}'
+
+        from openai import AsyncOpenAI
+        client = AsyncOpenAI(api_key=api_key)
+
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+
+        try:
+            response = await client.chat.completions.create(
+                model=settings.openai_model,
+                messages=messages,
+                temperature=0.3,
+                max_tokens=1024,
+            )
+            return response.choices[0].message.content or '{"entries": []}'
+        except Exception as e:
+            logger.error(f"LLMDriver.complete failed: {e}")
+            return '{"entries": []}'

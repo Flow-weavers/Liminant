@@ -1,0 +1,64 @@
+{
+  "id": "sess_0717a1340615",
+  "created_at": "2026-04-01T18:00:05.018135",
+  "updated_at": "2026-04-01T18:00:18.797607",
+  "state": {
+    "phase": "planning",
+    "current_step": 1,
+    "total_steps": 1
+  },
+  "context": {
+    "working_directory": "/workspace/default",
+    "language": "en-US",
+    "preferences": {
+      "detail_level": "medium",
+      "output_format": "markdown"
+    }
+  },
+  "messages": [
+    {
+      "id": "msg_f430a22bcbb9",
+      "role": "user",
+      "content": "介绍你自己",
+      "timestamp": "2026-04-01T18:00:15.402576",
+      "metadata": {
+        "tokens_used": 0,
+        "model": "",
+        "attachments": []
+      },
+      "ancestry": {
+        "kb_entries": [],
+        "applied_constraints": [],
+        "pipeline_stage": 0,
+        "phase": "idle",
+        "pipeline_complete": false,
+        "tools_used": []
+      }
+    },
+    {
+      "id": "msg_40a63e26b5ad",
+      "role": "assistant",
+      "content": "[No response — phase=done stage=4 error=\"Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}}\"]",
+      "timestamp": "2026-04-01T18:00:18.795209",
+      "metadata": {
+        "tokens_used": 0,
+        "model": "",
+        "attachments": []
+      },
+      "ancestry": {
+        "kb_entries": [],
+        "applied_constraints": [],
+        "pipeline_stage": 4,
+        "phase": "done",
+        "pipeline_complete": true,
+        "tools_used": []
+      }
+    }
+  ],
+  "artifacts": [],
+  "constraints": {
+    "active": true,
+    "rules": [],
+    "knowledge_refs": []
+  }
+}

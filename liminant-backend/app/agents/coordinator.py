@@ -12,10 +12,11 @@ class CoordinatorAgent(BaseAgent):
         messages = input_data.get("messages", [])
         session = input_data.get("session", {})
         user_input = messages[-1]["content"] if messages else ""
+        context_filter = input_data.get("context_filter")
 
         self.set_state("thinking", "Driving reasoning bus", 0.1)
 
-        ctx = await self.bus.drive(user_input, messages, session)
+        ctx = await self.bus.drive(user_input, messages, session, context_filter)
 
         if ctx.applied_constraints:
             quality = "good" if len(ctx.response_text) > 50 else "neutral"
